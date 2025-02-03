@@ -34,6 +34,8 @@ const userColours = new AutoMap<string, string>(user => {
 
 const log = (message: string) => console.log(colourS(message))
 
+let didParseOption = false;
+let didParseOptionAfterCommand = false;
 for (const argument of process.argv.slice(2)) {
 	if (argument[0] == `-`) {
 		const argumentEqualsIndex = argument.indexOf(`=`)
@@ -59,8 +61,15 @@ for (const argument of process.argv.slice(2)) {
 			for (const option of key!.slice(1))
 				options.set(option, value)
 		}
-	} else
+
+		didParseOption = true
+	} else {
+		if (didParseOption) {
+			didParseOptionAfterCommand = true;
+		}
+
 		commands.push(argument)
+	}
 }
 
 const pushModule = import(`../push`)
@@ -83,6 +92,15 @@ const colourN = chalk.rgb(0x00, 0xFF, 0xFF)
 const colourS = chalk.rgb(0x7A, 0xB2, 0xF4)
 const colourV = chalk.rgb(0xFF, 0x00, 0xEC)
 const colourW = chalk.rgb(0xFF, 0x96, 0xE0)
+
+if (didParseOptionAfterCommand) {
+	process.exitCode = 1
+
+	console.warn(colourF(`\
+${chalk.bold(`Warning:`)} Options should come after commands when calling the script.
+         This warning will become an error in the next minor version of HSM.`
+	))
+}
 
 if (process.version.startsWith(`v21.`)) {
 	process.exitCode = 1
